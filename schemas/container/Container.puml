@@ -1,0 +1,94 @@
+@startuml
+title WarmHouse Container Diagram
+
+top to bottom direction
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+AddElementTag("planned1", $borderStyle="dashed", $borderColor="#152115", $bgColor="#4f7fbe", $fontColor="#154360")
+AddElementTag("planned2", $borderStyle="dashed", $borderColor="#4445a8", $bgColor="#ccddff", $fontColor="#154360")
+AddRelTag("planned1", $lineStyle="bold", $lineColor="#aabfcf", $textColor="#777777")
+AddRelTag("planned2", $lineStyle="dashed", $lineColor="#447aee", $textColor="#aaaaaa")
+
+Person(user, "User", "Notebooks, smart TVs, mobile devices")
+
+System_Boundary(CinemaAbyss, "CinemaAbyss") {
+    ' Existing (blue)
+    Container(monolith, "Cinema Abyss", "Go", "Monolith")
+    ContainerDb(monolithDb, "PG", "Postgres")
+
+
+    ' Platform
+    Container(WebAppApiGateway, "Web App API Gateway", ".NET", "Routing & auth", $tags="planned1")
+    Container(WebApp, "Web App", "", "SPA")
+
+    ' Planned
+    Container(movies, "Movies Service", "Go", "Metadata, catalog", $tags="planned1")
+    ContainerDb(moviesDb, "Movies DB", "Postgres", $tags="planned1")
+
+    ContainerQueue(Kafka, "Kafka", "", $tags="planned1")
+
+    Container(SmartTVApp, "Smart TV App", "", "Next Planned", $tags="planned2")
+    Container(SmartTVAppBFF, "BFF for Smart TV App", "", "Next Planned", $tags="planned2")
+    Container(IdentityServer, "Identity Server", "", "Next Planned", $tags="planned2")
+
+    Container(FavoritesService, "Ratings / Favorites Service", "", "User lists, ratings", $tags="planned1")
+    ContainerDb(FavoritesServiceDb, "Favorites DB", "Postgres", $tags="planned1")
+
+    Container(RecommendationService, "Recommendation Service", "", "Replaces external system", $tags="planned2")
+    ContainerDb(RecommendationServiceDb, "Recommendation DB", "Postgres", $tags="planned2")
+    Container(RecommendationServiceAdapter, "Recommendation Service Adapter", "", "Bridge to old RabbitMQ", $tags="planned2")
+}
+
+' External
+System_Boundary(ExternalSystems, "External Systems") {
+    Container_Ext(PaymentSystem, "Payment System")
+    Container_Ext(Theater, "Theater Service")
+    Container_Ext(S3, "S3 Media Storage")
+    System_Boundary(RecommendationSystem, "External Recommendation System") {
+        ContainerQueue_Ext(RabbitMQ, "RabbitMQ")
+    }
+
+}
+' User
+Rel(user, WebApp, "Uses", "HTTPS")
+Rel(user, SmartTVApp, "Uses", "HTTPS", $tags="planned2")
+
+Rel(WebApp, WebAppApiGateway, "Calls", "HTTPS")
+Rel(WebAppApiGateway, IdentityServer, "Authenticates users", "", $tags="planned2")
+Rel(SmartTVApp, SmartTVAppBFF, "Calls", "HTTPS", $tags="planned2")
+
+' Monolith
+Rel(monolith, monolithDb, "Reads/writes", "SQL")
+Rel(monolith, S3, "Stores media files", "HTTPS")
+Rel(monolith, RabbitMQ, "Publishes views, receives recs", "AMQP")
+Rel(monolith, PaymentSystem, "Processes payments", "HTTPS")
+Rel(monolith, Theater, "Fetches streaming links", "HTTPS")
+
+' Gateway
+Rel(WebAppApiGateway, monolith, "Routes requests", "HTTP", $tags="planned1")
+Rel(WebAppApiGateway, movies, "Fetches metadata", "HTTP", $tags="planned1")
+Rel(WebAppApiGateway, Theater, "Fetches streaming links", "HTTP", $tags="planned1")
+Rel(WebAppApiGateway, FavoritesService, "Manages ratings, favorites", "HTTP", $tags="planned1")
+
+' Movies
+Rel(movies, moviesDb, "Uses", "SQL")
+
+' Kafka
+Rel(monolith, Kafka, "Publishes domain events", "", $tags="planned1")
+Rel(WebAppApiGateway, Kafka, "Publishes analytics", "", $tags="planned1")
+Rel(Kafka, FavoritesService, "Consumes user events", "", $tags="planned1")
+Rel(Kafka, RecommendationService, "Consumes ratings and views", "", $tags="planned2")
+
+' Recommendations (planned)
+Rel(WebAppApiGateway, RecommendationService, "Fetches recommendations", "HTTP", $tags="planned2")
+Rel(SmartTVAppBFF, RecommendationService, "Fetches recommendations", "HTTP", $tags="planned2")
+Rel(RecommendationService, RecommendationServiceDb, "Stores profiles", "SQL", $tags="planned2")
+Rel(RecommendationService, RecommendationServiceAdapter, "Integrates with legacy", "HTTP", $tags="planned2")
+Rel(RecommendationServiceAdapter, RabbitMQ, "Publishes/subscribes", "AMQP", $tags="planned2")
+
+' Favorites
+Rel(FavoritesService, FavoritesServiceDb, "Uses", "SQL", $tags="planned1")
+
+SHOW_LEGEND()
+@enduml

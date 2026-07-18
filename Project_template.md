@@ -5,8 +5,10 @@
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
 
+[Диаграмма контейнеров](https://github.com/THE-KONDRAT/yandex-practicum_cinemaabyss/blob/cinema/diagrams/container/Container.puml)
+
+![Диаграмма контейнеров](https://github.com/THE-KONDRAT/yandex-practicum_cinemaabyss/blob/cinema/schemas/container/Container-WarmHouse_Container_Diagram.png)
 
 ## Задание 2
 
@@ -58,6 +60,10 @@
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka http://localhost:8090 
+
+![Результаты тестов](https://github.com/THE-KONDRAT/yandex-practicum_cinemaabyss/blob/cinema/tests/postman/tests-result.png)
+
+![Топики Kafka](https://github.com/THE-KONDRAT/yandex-practicum_cinemaabyss/blob/cinema/tests/postman/kafka-topics.png)
 
 
 ## Задание 3

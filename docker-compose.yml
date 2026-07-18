@@ -19,6 +19,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
     networks:
       - cinemaabyss-network
 
@@ -57,7 +58,8 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-monolith
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
@@ -73,7 +75,8 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
@@ -85,24 +88,31 @@ services:
   # Events Microservice
   events-service:
     build:
-      context: ./src/microservices/events
+      context: ./src/microservices/events/EventsService
       dockerfile: Dockerfile
     container_name: cinemaabyss-events-service
     depends_on:
-      - postgres
-      - kafka
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     ports:
       - "8082:8082"
     environment:
       PORT: 8082
       KAFKA_BROKERS: kafka:9092
+
+      KAFKA_TOPIC_MOVIE: "movie-events"
+      KAFKA_TOPIC_USER: "user-events"
+      KAFKA_TOPIC_PAYMENT: "payment-events"
+      KAFKA_CONSUMER_GROUP: "events-service-group"
     networks:
       - cinemaabyss-network
 
   # Proxy Service (API Gateway)
   proxy-service:
     build:
-      context: ./src/microservices/proxy
+      context: ./src/microservices/proxy/CinemaAbyssApiGateway
       dockerfile: Dockerfile
     container_name: cinemaabyss-proxy-service
     depends_on:
@@ -111,13 +121,15 @@ services:
       - events-service
     ports:
       - "8000:8000"
+    # volumes:
+    #   - ./proxy-routes.json:/app/routes.json:ro
     environment:
       PORT: 8000
       MONOLITH_URL: http://monolith:8080
       MOVIES_SERVICE_URL: http://movies-service:8081
       EVENTS_SERVICE_URL: http://events-service:8082
       GRADUAL_MIGRATION: "true"
-      MOVIES_MIGRATION_PERCENT: "50"
+      MOVIES_MIGRATION_PERCENT: "80"
     networks:
       - cinemaabyss-network
 
