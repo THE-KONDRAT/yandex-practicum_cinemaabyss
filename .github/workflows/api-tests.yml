@@ -2,7 +2,7 @@ name: API Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ cinema ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Docker Compose
         run: |
@@ -38,10 +38,25 @@ jobs:
           docker compose up -d
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
-          sleep 120
-      
+          sleep 30
+
+      - name: Check services health
+        run: |
+          for i in {1..30}; do
+            curl -sf http://localhost:8080/health && \
+            curl -sf http://localhost:8081/api/movies/health && \
+            curl -sf http://localhost:8082/api/events/health && \
+            curl -sf http://localhost:8000/health && \
+            echo "All ready" && exit 0
+            echo "Attempt $i: not ready yet"
+            sleep 5
+          done
+          echo "Services failed to start"
+          docker compose logs
+          exit 1
+
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
@@ -54,18 +69,13 @@ jobs:
       - name: Run API tests
         working-directory: tests/postman
         run: |
-
-          docker compose up -d
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          sleep 15
           # Build the Docker image
           docker build -t cinemaabyss-api-tests .
           
           # Run the tests in Docker
-          docker run --network=cinemaabyss-network -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests
+          docker run --network=cinemaabyss-network -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests --environment docker
         
       
       - name: Stop services
         if: always()
-        run: docker compose down
+        run: docker compose down -v
