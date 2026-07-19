@@ -22,23 +22,13 @@ spec:
     spec:
       containers:
         - name: proxy-service
-          image:  ghcr.io/THE-KONDRAT/yandex-practicum_cinemaabyss/proxy-service:latest
+          image: ghcr.io/the-kondrat/yandex-practicum_cinemaabyss/proxy-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
             - name: PORT
               value: "8000"
-            - name: MONOLITH_URL
-              value: "$(MONOLITH_URL)"
-            - name: MOVIES_SERVICE_URL
-              value: "$(MOVIES_SERVICE_URL)"
-            - name: EVENTS_SERVICE_URL
-              value: "$(EVENTS_SERVICE_URL)"
-            - name: GRADUAL_MIGRATION
-              value: "$(GRADUAL_MIGRATION)"
-            - name: MOVIES_MIGRATION_PERCENT
-              value: "$(MOVIES_MIGRATION_PERCENT)"
           envFrom:
             - configMapRef:
                 name: cinemaabyss-config

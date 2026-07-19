@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: monolith
-        image:  ghcr.io/THE-KONDRAT/yandex-practicum_cinemaabyss/monolith:latest
+        image: ghcr.io/the-kondrat/yandex-practicum_cinemaabyss/monolith:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

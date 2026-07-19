@@ -22,15 +22,13 @@ spec:
     spec:
       containers:
         - name: events-service
-          image:  ghcr.io/THE-KONDRAT/yandex-practicum_cinemaabyss/events-service:latest
+          image: ghcr.io/the-kondrat/yandex-practicum_cinemaabyss/events-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8082
           env:
             - name: PORT
               value: "8082"
-            - name: KAFKA_BROKERS
-              value: "$(KAFKA_BROKER)"
             - name: KAFKA_TOPIC_MOVIE
               value: "movie-events"
             - name: KAFKA_TOPIC_USER

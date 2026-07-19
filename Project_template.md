@@ -279,6 +279,9 @@ cat .docker/config.json | base64
 
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+![Вызов эндпроинта](https://github.com/THE-KONDRAT/yandex-practicum_cinemaabyss/blob/cinema/tests/endpoint-call.png)
+
+![Логи event-service](https://github.com/THE-KONDRAT/yandex-practicum_cinemaabyss/blob/cinema/tests/logs.png)
 
 
 ## Задание 4
